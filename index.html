@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prescrições - MedOn</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Header - FIXED POSITIONING FOR ALWAYS VISIBLE BUTTONS -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="header-title">Prescrições - MedOn</h1>
+                <div class="header-actions">
+                    <button class="btn btn--secondary settings-btn" id="settingsBtn" title="Configurações" type="button">⚙️ Configurações</button>
+                    <button class="btn btn--red" id="generateCertificateBtn" title="Gerar Atestado Médico" type="button">GERAR ATESTADO</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Sidebar - Prescription List -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" data-category="all">Tudo</button>
+                        <button class="filter-tab" data-category="Receita Padrão">Receita Padrão</button>
+                        <button class="filter-tab" data-category="Emergência">Emergência</button>
+                        <button class="filter-tab" data-category="Exames">Exames</button>
+                        <button class="filter-tab" data-category="Modelos">📋 Modelos</button>
+                        <button class="filter-tab" data-category="Outros">Outros</button>
+                    </div>
+                    
+                    <div class="search-container">
+                        <input type="text" id="searchInput" class="search-input" placeholder="Cefalexina, Amoxicilina, J06">
+                    </div>
+                    
+                    <button class="btn btn--primary btn--full-width" id="newPrescriptionBtn">
+                        + Nova Prescrição
+                    </button>
+                </div>
+                
+                <div class="prescription-list" id="prescriptionList">
+                    <!-- Prescription cards will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Right Panel - Prescription Details -->
+            <div class="main-panel">
+                <div class="prescription-detail" id="prescriptionDetail">
+                    <div class="empty-state" id="emptyState">
+                        <h3>Selecione uma prescrição para visualizar</h3>
+                        <p>Escolha uma prescrição da lista à esquerda ou crie uma nova.</p>
+                    </div>
+                    
+                    <div class="prescription-content" id="prescriptionContent" style="display: none;">
+                        <div class="prescription-header">
+                            <div class="prescription-info">
+                                <h2 id="prescriptionTitle">Título da Prescrição</h2>
+                                <p id="prescriptionMeta">CID - Categoria</p>
+                            </div>
+                            <div class="shortcut-buttons">
+                                <button class="btn btn--sm btn--secondary">COPIAR</button>
+                                <button class="btn btn--sm btn--secondary">ATALHO NAO CONFIGU...</button>
+                            </div>
+                        </div>
+                        
+                        <div class="toolbar">
+                            <button class="toolbar-btn" data-command="bold" title="Negrito"><strong>B</strong></button>
+                            <button class="toolbar-btn" data-command="italic" title="Itálico"><em>I</em></button>
+                            <button class="toolbar-btn" data-command="underline" title="Sublinhado"><u>U</u></button>
+                            <div class="toolbar-separator"></div>
+                            <button class="toolbar-btn" data-command="insertUnorderedList" title="Lista com marcadores">•</button>
+                            <button class="toolbar-btn" data-command="insertOrderedList" title="Lista numerada">1.</button>
+                            <div class="toolbar-separator"></div>
+                            <button class="toolbar-btn" data-command="justifyLeft" title="Alinhar à esquerda">⇤</button>
+                            <button class="toolbar-btn" data-command="justifyCenter" title="Centralizar">⇔</button>
+                            <button class="toolbar-btn" data-command="justifyRight" title="Alinhar à direita">⇥</button>
+                            <button class="toolbar-btn" data-command="justifyFull" title="Justificar">⇿</button>
+                        </div>
+                        
+                        <div class="editor-container">
+                            <div id="prescriptionEditor" class="editor" contenteditable="true"></div>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn btn--primary" id="saveBtn">SALVAR</button>
+                            <button class="btn btn--blue" id="copyBtn">COPIAR</button>
+                            <button class="btn btn--blue" id="printBtn">IMPRIMIR</button>
+                            <button class="btn btn--danger" id="deleteBtn">EXCLUIR</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Prescription Modal -->
+    <div class="modal" id="addPrescriptionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Adicionar Receita</h3>
+                <button class="modal-close" id="closeAddPrescriptionModal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" id="titleLabel">Título: *</label>
+                    <input type="text" id="prescriptionTitleInput" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" id="cidLabel">CID:</label>
+                    <input type="text" id="prescriptionCidInput" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Categoria: *</label>
+                    <select id="prescriptionCategoryInput" class="form-control" required>
+                        <option value="">Selecione uma categoria</option>
+                        <option value="Receita Padrão">Receita Padrão</option>
+                        <option value="Emergência">Emergência</option>
+                        <option value="Exames">Exames</option>
+                        <option value="Modelos">Modelos</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--secondary" id="cancelAddBtn">Cancelar</button>
+                <button class="btn btn--primary" id="addBtn">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Prescription Modal -->
+    <div class="modal" id="printPrescriptionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirmar Impressão da Receita</h3>
+                <button class="modal-close" id="closePrintPrescriptionModal">×</button>
+            </div>
+            <div class="modal-subtitle">
+                Configure os dados da receita antes de imprimir.
+            </div>
+            <div class="modal-body">
+                <div class="toggle-buttons">
+                    <button class="toggle-btn active" id="withPrescriptionHeaderBtn">Adicionar Cabeçalho</button>
+                    <button class="toggle-btn" id="withoutPrescriptionHeaderBtn">Sem Cabeçalho</button>
+                </div>
+                
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="includeCid">
+                        <span class="checkmark"></span>
+                        Incluir CID
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="includeDate" checked>
+                        <span class="checkmark"></span>
+                        Incluir Data
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="specialControl">
+                        <span class="checkmark"></span>
+                        Controle Especial
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Nome do Paciente</label>
+                    <input type="text" id="prescriptionPatientName" class="form-control" placeholder="Digite o nome do paciente">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--secondary" id="cancelPrintPrescriptionBtn">Cancelar</button>
+                <button class="btn btn--black" id="confirmPrintPrescriptionBtn">Imprimir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Certificate Modal -->
+    <div class="modal" id="printCertificateModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Imprimir Atestado</h3>
+                <button class="modal-close" id="closePrintCertificateModal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="toggle-buttons">
+                    <button class="toggle-btn active" id="withHeaderBtn">Adicionar Cabeçalho</button>
+                    <button class="toggle-btn" id="withoutHeaderBtn">Sem Cabeçalho</button>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Nome do Paciente *</label>
+                    <input type="text" id="patientNameInput" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Dias *</label>
+                    <input type="number" id="daysInput" class="form-control" value="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">CID *</label>
+                    <input type="text" id="certificateCidInput" class="form-control" required>
+                </div>
+                
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="certificateIncludeCid" checked>
+                        <span class="checkmark"></span>
+                        Incluir CID
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--secondary" id="closePrintBtn">Fechar</button>
+                <button class="btn btn--primary" id="printCertificateBtn">Imprimir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Header Modal -->
+    <div class="modal" id="addHeaderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Adicionar Cabeçalho</h3>
+                <button class="modal-close" id="closeAddHeaderModal">×</button>
+            </div>
+            <div class="modal-subtitle">
+                Preencha os campos e selecione a imagem do cabeçalho.
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nome do Cabeçalho:</label>
+                    <input type="text" id="headerNameInput" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Imagem do Cabeçalho:</label>
+                    <div class="file-upload">
+                        <input type="file" id="headerFileInput" accept="image/*" style="display: none;">
+                        <button class="btn btn--secondary" id="chooseFileBtn">Escolher ficheiro</button>
+                        <span id="fileStatus">Nenhum ficheiro selecionado</span>
+                    </div>
+                    <small class="form-hint">Tamanho recomendado: 800×80px</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--secondary" id="cancelHeaderBtn">Cancelar</button>
+                <button class="btn btn--primary" id="addHeaderBtn">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteConfirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirmar Exclusão</h3>
+                <button class="modal-close" id="closeDeleteConfirmModal">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir esta prescrição?</p>
+                <p><strong id="deleteConfirmTitle"></strong></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--secondary" id="cancelDeleteBtn">Cancelar</button>
+                <button class="btn btn--danger" id="confirmDeleteBtn">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal settings-modal" id="settingsModal">
+        <div class="modal-content settings-modal-content">
+            <div class="modal-header">
+                <h3>Configurações</h3>
+                <button class="modal-close" id="closeSettingsModal">×</button>
+            </div>
+            <div class="modal-subtitle">
+                Personalize as configurações do aplicativo
+            </div>
+            
+            <!-- Settings Tabs -->
+            <div class="settings-tabs">
+                <button class="settings-tab active" data-tab="certificates">📄 Atestados</button>
+                <button class="settings-tab" data-tab="headers">🖼️ Cabeçalhos</button>
+                <button class="settings-tab" data-tab="general">⚙️ Geral</button>
+            </div>
+            
+            <div class="modal-body settings-modal-body">
+                <!-- Certificates Tab -->
+                <div class="settings-tab-content active" id="certificatesTab">
+                    <div class="settings-section">
+                        <h4>Modelo de Atestado</h4>
+                        <div class="form-group">
+                            <label class="form-label">Modelo de Texto:</label>
+                            <select id="certificateTemplate" class="form-control">
+                                <option value="legal">Modelo Legal (Decreto 60.501/1967)</option>
+                                <option value="simple">Modelo Simples</option>
+                                <option value="custom">Modelo Personalizado</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" id="customTemplateGroup" style="display: none;">
+                            <label class="form-label">Texto Personalizado:</label>
+                            <textarea id="customTemplateText" class="form-control" rows="4" placeholder="Use [NOME_PACIENTE], [DATA_EXAME], [DATA_INICIO], [DIAS], [CID] como variáveis"></textarea>
+                            <small class="form-hint">Placeholders: [NOME_PACIENTE], [DATA_EXAME], [DATA_INICIO], [DIAS], [CID]</small>
+                        </div>
+                        
+                        <h4>Configurações Padrão</h4>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="defaultIncludeCID">
+                                <span class="checkmark"></span>
+                                Incluir CID por padrão
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="defaultIncludeDate" checked>
+                                <span class="checkmark"></span>
+                                Incluir Data por padrão
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="defaultSpecialControl">
+                                <span class="checkmark"></span>
+                                Controle Especial por padrão
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="defaultUseHeader" checked>
+                                <span class="checkmark"></span>
+                                Usar cabeçalho por padrão
+                            </label>
+                        </div>
+                        
+                        <h4>Informações do Médico</h4>
+                        <div class="form-group">
+                            <label class="form-label">Nome do Médico:</label>
+                            <input type="text" id="doctorName" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">CRM:</label>
+                            <input type="text" id="doctorCRM" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Especialidade:</label>
+                            <input type="text" id="doctorSpecialty" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nome da Unidade/Clínica:</label>
+                            <input type="text" id="doctorClinic" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Headers Tab -->
+                <div class="settings-tab-content" id="headersTab">
+                    <div class="settings-section">
+                        <div class="section-header">
+                            <h4>Gerenciar Cabeçalhos</h4>
+                            <button class="btn btn--primary btn--sm" id="addNewHeaderBtn">+ Adicionar Cabeçalho</button>
+                        </div>
+                        
+                        <div class="headers-list" id="headersList">
+                            <div class="empty-headers">
+                                <p>Nenhum cabeçalho salvo ainda.</p>
+                                <p>Clique em "+ Adicionar Cabeçalho" para criar o primeiro.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- General Tab -->
+                <div class="settings-tab-content" id="generalTab">
+                    <div class="settings-section">
+                        <h4>Prescrições</h4>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="confirmBeforeDelete" checked>
+                                <span class="checkmark"></span>
+                                Confirmar antes de excluir
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="autoSaveChanges" checked>
+                                <span class="checkmark"></span>
+                                Auto-salvar alterações
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Tempo de auto-save (segundos):</label>
+                            <input type="number" id="autoSaveInterval" class="form-control" value="5" min="1">
+                        </div>
+                        
+                        <h4>Impressão</h4>
+                        <div class="form-group">
+                            <label class="form-label">Tamanho do papel:</label>
+                            <select id="paperSize" class="form-control">
+                                <option value="A4">A4</option>
+                                <option value="Carta">Carta</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Orientação:</label>
+                            <select id="paperOrientation" class="form-control">
+                                <option value="portrait">Retrato</option>
+                                <option value="landscape">Paisagem</option>
+                            </select>
+                        </div>
+                        
+                        <h4>Backup</h4>
+                        <div class="form-group">
+                            <button class="btn btn--secondary" id="exportDataBtn">Exportar dados</button>
+                            <button class="btn btn--secondary" id="importDataBtn">Importar dados</button>
+                            <input type="file" id="importDataFile" style="display: none;" accept=".json">
+                        </div>
+                        
+                        <h4>Sobre</h4>
+                        <div class="about-info">
+                            <p><strong>Prescrições - MedOn</strong></p>
+                            <p>Versão 1.0.0</p>
+                            <p>Sistema de gerenciamento de prescrições médicas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn--secondary" id="cancelSettingsBtn">Cancelar</button>
+                <button class="btn btn--primary" id="saveSettingsBtn">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Add Header Modal -->
+    <div class="modal" id="enhancedAddHeaderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Adicionar Cabeçalho</h3>
+                <button class="modal-close" id="closeEnhancedAddHeaderModal">×</button>
+            </div>
+            <div class="modal-subtitle">
+                Configure o cabeçalho personalizado para seus documentos.
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nome do Cabeçalho: *</label>
+                    <input type="text" id="enhancedHeaderName" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Tipo de Cabeçalho:</label>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="headerType" value="full" checked>
+                            <span class="radio-mark"></span>
+                            Imagem Completa (800×80px)
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="headerType" value="logo">
+                            <span class="radio-mark"></span>
+                            Logo/Símbolo
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="logoOptionsGroup" style="display: none;">
+                    <label class="form-label">Posição:</label>
+                    <select id="logoPosition" class="form-control">
+                        <option value="center">Centro</option>
+                        <option value="left">Esquerda</option>
+                        <option value="right">Direita</option>
+                    </select>
+                    
+                    <label class="form-label">Tamanho:</label>
+                    <select id="logoSize" class="form-control">
+                        <option value="small">Pequeno</option>
+                        <option value="medium">Médio</option>
+                        <option value="large">Grande</option>
+                    </select>
+                    
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="useAsWatermark">
+                            <span class="checkmark"></span>
+                            Usar como marca d'água de fundo
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Imagem: *</label>
+                    <div class="file-upload">
+                        <input type="file" id="enhancedHeaderFile" accept="image/*" style="display: none;">
+                        <button class="btn btn--secondary" id="chooseEnhancedFileBtn">Escolher imagem</button>
+                        <span id="enhancedFileStatus">Nenhuma imagem selecionada</span>
+                    </div>
+                    <div class="image-preview" id="headerImagePreview" style="display: none;">
+                        <img id="headerPreviewImg" style="max-width: 200px; max-height: 100px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                </div>
+                
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="setAsDefaultHeader">
+                        <span class="checkmark"></span>
+                        Definir como cabeçalho padrão
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--secondary" id="cancelEnhancedHeaderBtn">Cancelar</button>
+                <button class="btn btn--primary" id="addEnhancedHeaderBtn">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
